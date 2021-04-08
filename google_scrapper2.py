@@ -14,63 +14,63 @@ usr_agent={
     'connection':'keep-alive',
 }
 
-SAVE_FOLDER="IMAGE"
-
 def main():
-    if not os.path.exists(SAVE_FOLDER):
-        os.mkdir(SAVE_FOLDER)
-    download_images()
+
+  SAVE_FOLDER = input("Enter the keyword: ")
+  if not os.path.exists(SAVE_FOLDER):
+      os.mkdir(SAVE_FOLDER)
+  download_images(SAVE_FOLDER)
 
 
-def download_images():
-    data = input('What are you looking for? ')
-    #n_images = int(input('How many images do you want download? '))
+def download_images(SAVE_FOLDER):
 
-    print('Start searching.....')
-    searchurl = 'https://www.google.com/search?q=' + data + '&source=lnms&tbm=isch'
+  data = SAVE_FOLDER
+  data= data.split()
+  data='+'.join(data)
 
-    try:
-      response = requests.get(searchurl, headers=usr_agent)
-      response.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-      print ("Http Error:",errh)
-    except requests.exceptions.ConnectionError as errc:
-      print ("Error Connecting:",errc)
-    except requests.exceptions.Timeout as errt:
-      print ("Timeout Error:",errt)
-    except requests.exceptions.RequestException as err:
-      print ("OOps: Something Else",err)
+  print('Start searching.....')
+  searchurl = 'https://www.google.com/search?q=' + data + '&source=lnms&tbm=isch'
 
-    # request url, without usr_agent, the permission gets denied
+  try:
     response = requests.get(searchurl, headers=usr_agent)
+    response.raise_for_status()
+  except requests.exceptions.HTTPError as errh:
+    print ("Http Error:",errh)
+  except requests.exceptions.ConnectionError as errc:
+    print ("Error Connecting:",errc)
+  except requests.exceptions.Timeout as errt:
+    print ("Timeout Error:",errt)
+  except requests.exceptions.RequestException as err:
+    print ("OOps: Something Else",err)
 
-    # find all divs where class='rg_i Q4LuWd'
-    soup = BeautifulSoup(response.text, 'html.parser')
-    results = soup.findAll('img')
+  # request url, without usr_agent, the permission gets denied
+  response = requests.get(searchurl, headers=usr_agent)
 
-    # gathering requested number of list of image links with data-src attribute
-    # continue the loop in case query fails for non-data-src attributes
-    #count = 0
-    links = []
-    for res in results:
-        try:
-            link = res['data-src']
-            links.append(link)
-            #count += 1
-            #if (count >= n_images): break
+  soup = BeautifulSoup(response.text, 'html.parser')
+  results = soup.findAll('img')
 
-        except KeyError:
-            continue
+  # gathering requested number of list of image links with data-src attribute
+  # continue the loop in case query fails for non-data-src attributes
+ 
+  links = []
+  for res in results:
+      try:
+          link = res['data-src']
+          links.append(link)
 
-    print(f'Downloading {len(links)} images....')
 
-    # Access the data URI and download the image to a file
-    for i, link in enumerate(links):
-        response = requests.get(link)
+      except KeyError:
+          continue
 
-        image_name = SAVE_FOLDER + '/' + data + str(i + 1) + '.jpg'
-        with open(image_name, 'wb') as raw_img:
-            raw_img.write(response.content)
+  print(f'Downloading {len(links)} images....')
+
+  # Access the data URI and download the image to a file
+  for i, link in enumerate(links):
+      response = requests.get(link)
+
+      image_name = SAVE_FOLDER + '/' + data + str(i + 1) + '.jpg'
+      with open(image_name, 'wb') as raw_img:
+          raw_img.write(response.content)
 
 if __name__=='__main__':
     main()
